@@ -19,7 +19,7 @@ export default function TranslatorScreen({ onShowLegend }: { onShowLegend: () =>
   const [selected, setSelected] = useState<Message | null>(null);
   const [langs, setLangs] = useState<{ from: LangCode; to: LangCode }>({ from: 'en', to: 'es' });
 
-  const { messages, loading, error, clear } = useConversation(listening);
+  const { messages, loading, error, historyLoaded, clear } = useConversation(listening);
 
   // Quiet breathing ring around the mic while listening.
   const ring = useRef(new Animated.Value(0)).current;
@@ -43,13 +43,9 @@ export default function TranslatorScreen({ onShowLegend }: { onShowLegend: () =>
 
   const toggleListening = useCallback(() => {
     haptic('light');
-    setListening((on) => {
-      // Clear conversation history each time a new session starts.
-      if (!on) clear();
-      return !on;
-    });
+    setListening((on) => !on);
     setSelected(null);
-  }, [clear]);
+  }, []);
 
   const toggleTones = useCallback(() => {
     haptic('select');
@@ -105,6 +101,21 @@ export default function TranslatorScreen({ onShowLegend }: { onShowLegend: () =>
           accessibilityLabel="Show tone legend"
         >
           <Ionicons name="help-circle-outline" size={22} color={colors.muted} />
+        </Pressable>
+        <Pressable
+          onPress={clear}
+          disabled={!historyLoaded || messages.length === 0 || listening || loading}
+          hitSlop={10}
+          style={styles.clearHistory}
+          accessibilityRole="button"
+          accessibilityLabel="Clear conversation history"
+          accessibilityHint="Removes saved transcripts from this device"
+        >
+          <Ionicons
+            name="trash-outline"
+            size={19}
+            color={historyLoaded && messages.length > 0 && !listening && !loading ? colors.muted : colors.faint}
+          />
         </Pressable>
       </View>
 
@@ -202,12 +213,20 @@ export default function TranslatorScreen({ onShowLegend }: { onShowLegend: () =>
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 18 },
   header: { justifyContent: 'center' },
-  langBar: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingRight: 28 },
+  langBar: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingRight: 66 },
   langPill: { flex: 1 },
   langInner: { height: 46, alignItems: 'center', justifyContent: 'center' },
   langText: { color: colors.text, fontSize: 15, fontWeight: '500', letterSpacing: 0.2 },
   swap: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   help: { position: 'absolute', right: 0 },
+  clearHistory: {
+    position: 'absolute',
+    right: 34,
+    width: 28,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   stage: { flex: 1, marginTop: 14 },
   scroll: { flex: 1 },
   content: { gap: 14, paddingBottom: 20 },

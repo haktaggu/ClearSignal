@@ -5,8 +5,12 @@ transcribes it with IBM Watson Speech to Text, translates it to Spanish, and
 uses watsonx.ai to flag evidence-supported pressure tactics, secrecy requests,
 coercion, and possible contradictions.
 
-The app does not store conversations by default. Recording currently happens in
-short start/stop segments rather than continuous streaming.
+The app keeps up to 40 transcript messages in local app/browser storage so
+later statements can be checked against earlier ones. Use the trash button to
+clear this history. It is not stored in a server-side database, but local
+storage is unencrypted, so avoid sensitive conversations on shared devices.
+Recording currently happens in short start/stop segments rather than
+continuous streaming.
 
 ## Project structure
 
