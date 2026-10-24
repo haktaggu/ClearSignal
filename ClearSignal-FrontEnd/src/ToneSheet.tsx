@@ -81,17 +81,25 @@ export default function ToneSheet({ message, earlier, onClose }: Props) {
 
             <Text style={styles.meaning}>{tone.meaning}</Text>
 
-            <Text style={styles.sectionLabel}>Why it feels this way</Text>
-            <Text style={styles.body}>{shown.why}</Text>
+            {shown.why ? (
+              <>
+                <Text style={styles.sectionLabel}>Why it feels this way</Text>
+                <Text style={styles.body}>{shown.why}</Text>
+              </>
+            ) : null}
 
-            <Text style={styles.sectionLabel}>What we heard</Text>
-            <View style={styles.signals}>
-              {shown.signals.map((s) => (
-                <View key={s} style={styles.signal}>
-                  <Text style={styles.signalText}>{s}</Text>
+            {shown.signals.length > 0 ? (
+              <>
+                <Text style={styles.sectionLabel}>What we heard</Text>
+                <View style={styles.signals}>
+                  {shown.signals.map((s) => (
+                    <View key={s} style={styles.signal}>
+                      <Text style={styles.signalText}>{s}</Text>
+                    </View>
+                  ))}
                 </View>
-              ))}
-            </View>
+              </>
+            ) : null}
 
             {earlier ? (
               <>
@@ -102,8 +110,12 @@ export default function ToneSheet({ message, earlier, onClose }: Props) {
               </>
             ) : null}
 
-            <Text style={styles.sectionLabel}>Context</Text>
-            <Text style={styles.body}>{shown.context}</Text>
+            {shown.context ? (
+              <>
+                <Text style={styles.sectionLabel}>Context</Text>
+                <Text style={styles.body}>{shown.context}</Text>
+              </>
+            ) : null}
           </Glass>
         </Animated.View>
       </View>
@@ -163,7 +175,7 @@ const styles = StyleSheet.create({
   signalText: { color: colors.text, fontSize: 13, opacity: 0.9 },
   quote: {
     borderLeftWidth: 2,
-    borderLeftColor: TONE_MAP.walkback.color,
+    borderLeftColor: TONE_MAP.contradict.color,
     paddingLeft: 12,
   },
   quoteText: { color: colors.text, fontSize: 15, lineHeight: 22, opacity: 0.85 },

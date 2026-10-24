@@ -82,8 +82,8 @@ const styles = StyleSheet.create({
   subtitle: { color: colors.muted, fontSize: 15, lineHeight: 22, marginTop: 10, maxWidth: 330 },
   list: { marginTop: 36, gap: 14 },
   row: { flexDirection: 'row', alignItems: 'center' },
-  pillCol: { width: 150 },
-  meaning: { flex: 1, color: colors.muted, fontSize: 14, lineHeight: 19 },
+  pillCol: { width: 220 },
+  meaning: { flex: 1, marginLeft: 12, color: colors.muted, fontSize: 14, lineHeight: 19 },
   footer: { marginTop: 'auto', alignItems: 'center' },
   button: {
     height: 52,

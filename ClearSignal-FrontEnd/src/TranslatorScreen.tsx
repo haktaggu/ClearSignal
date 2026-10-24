@@ -19,7 +19,7 @@ export default function TranslatorScreen({ onShowLegend }: { onShowLegend: () =>
   const [selected, setSelected] = useState<Message | null>(null);
   const [langs, setLangs] = useState<{ from: LangCode; to: LangCode }>({ from: 'en', to: 'es' });
 
-  const { messages, clear } = useConversation(listening);
+  const { messages } = useConversation(listening);
 
   // Quiet breathing ring around the mic while listening.
   const ring = useRef(new Animated.Value(0)).current;
@@ -43,12 +43,9 @@ export default function TranslatorScreen({ onShowLegend }: { onShowLegend: () =>
 
   const toggleListening = useCallback(() => {
     haptic('light');
-    setListening((on) => {
-      if (!on) clear();
-      return !on;
-    });
+    setListening((on) => !on);
     setSelected(null);
-  }, [clear]);
+  }, []);
 
   const toggleTones = useCallback(() => {
     haptic('select');

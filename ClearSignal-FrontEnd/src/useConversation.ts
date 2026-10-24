@@ -1,52 +1,120 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { SAMPLES } from './samples';
+import { Platform } from 'react-native';
+import {
+  AudioModule,
+  RecordingPresets,
+  setAudioModeAsync,
+  useAudioRecorder,
+} from 'expo-audio';
 import type { Message, Utterance } from './types';
 
 const MAX_MESSAGES = 40;
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
-/**
- * Emits translated, tone-tagged messages while `active` is true.
- *
- * This is a stand-in for a real pipeline. To go live, replace the interval with:
- *   mic audio -> speech recognition + translation + tone model -> Utterance
- * and call `push(utterance)` for each result. The UI needs nothing else.
- */
 export function useConversation(active: boolean) {
   const [messages, setMessages] = useState<Message[]>([]);
-  const cursor = useRef(0);
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const recording = useRef(false);
   const counter = useRef(0);
   const history = useRef<Message[]>([]);
 
   const push = useCallback((u: Utterance) => {
     counter.current += 1;
-    const { refersBack, ...rest } = u;
-    const refersToId = refersBack
-      ? history.current[history.current.length - refersBack]?.id
-      : undefined;
-    const message: Message = { ...rest, id: `m${counter.current}`, refersToId };
+
+    const message: Message = {
+      ...u,
+      id: `m${counter.current}`,
+    };
+
     history.current = [...history.current, message].slice(-MAX_MESSAGES);
-    setMessages((prev) => [...prev, message].slice(-MAX_MESSAGES));
+    setMessages((previous) => [...previous, message].slice(-MAX_MESSAGES));
   }, []);
 
   useEffect(() => {
-    if (!active) return undefined;
-    const tick = () => {
-      push(SAMPLES[cursor.current % SAMPLES.length]);
-      cursor.current += 1;
-    };
-    const first = setTimeout(tick, 1200);
-    const loop = setInterval(tick, 3600);
-    return () => {
-      clearTimeout(first);
-      clearInterval(loop);
-    };
-  }, [active, push]);
+    void (async () => {
+      const permission = await AudioModule.requestRecordingPermissionsAsync();
 
-  const clear = useCallback(() => {
-    history.current = [];
-    cursor.current = 0;
-    setMessages([]);
+      if (permission.granted) {
+        await setAudioModeAsync({
+          playsInSilentMode: true,
+          allowsRecording: true,
+        });
+      }
+    })();
   }, []);
 
-  return { messages, push, clear };
+  const startRecording = useCallback(async () => {
+    await recorder.prepareToRecordAsync();
+    recorder.record();
+    recording.current = true;
+  }, [recorder]);
+
+  const stopRecording = useCallback(async () => {
+    if (!recording.current) return;
+
+    await recorder.stop();
+    recording.current = false;
+
+    const uri = recorder.uri;
+    if (!uri) return;
+
+    const formData = new FormData();
+    formData.append(
+      'history',
+      JSON.stringify(history.current.map((message) => message.text.en))
+    );
+
+    if (Platform.OS === 'web') {
+      const audioBlob = await fetch(uri).then((response) => response.blob());
+      formData.append('file', audioBlob, 'recording.webm');
+    } else {
+      formData.append('file', {
+        uri,
+        name: 'recording.m4a',
+        type: 'audio/m4a',
+      } as any);
+    }
+
+    if (!API_URL) {
+      throw new Error('EXPO_PUBLIC_API_URL is not configured.');
+    }
+
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Audio analysis failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const findings = data.analysis?.findings ?? [];
+
+    push({
+      text: {
+        en: data.transcript,
+        es: data.translation ?? data.transcript,
+      },
+      tone: data.analysis?.tone ?? 'neutral',
+      intensity: data.analysis?.intensity ?? 0.2,
+      why: findings
+        .map((finding: any) => finding.explanation)
+        .join(' '),
+      signals: findings.map((finding: any) => finding.category),
+      context: data.analysis?.suggested_question ?? '',
+    });
+  }, [recorder, push]);
+
+  useEffect(() => {
+    if (active) {
+      void startRecording();
+    } else {
+      void stopRecording();
+    }
+  }, [active, startRecording, stopRecording]);
+
+  return {
+    messages,
+  };
 }
