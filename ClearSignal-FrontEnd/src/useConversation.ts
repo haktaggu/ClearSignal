@@ -7,6 +7,7 @@ import {
   setAudioModeAsync,
   useAudioRecorder,
 } from 'expo-audio';
+import { TONE_MAP } from './tones';
 import type { Message, Utterance } from './types';
 
 const MAX_MESSAGES = 40;
@@ -79,10 +80,10 @@ function display_AI(data: BackendResponse): Utterance {
     ? analysis.findings
     : [];
 
-  const validTones = new Set<string>([
-    'neutral', 'joking', 'sarcasm', 'sly', 'anger', 'contradict',
-  ]);
-  const tone: Utterance['tone'] = validTones.has(analysis?.tone)
+  const tone: Utterance['tone'] = Object.prototype.hasOwnProperty.call(
+    TONE_MAP,
+    analysis?.tone
+  )
     ? (analysis.tone as Utterance['tone'])
     : 'neutral';
 

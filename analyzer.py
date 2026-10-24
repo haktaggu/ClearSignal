@@ -129,6 +129,14 @@ ALLOWED_TYPES = {
     "ambiguous_commitment",
 }
 
+TONE_BY_FINDING_TYPE = {
+    "possible_contradiction": "contradict",
+    "explicit_pressure": "sly",
+    "secrecy_request": "sly",
+    "coercive_statement": "anger",
+    "ambiguous_commitment": "neutral",
+}
+
 
 def ask_granite(system_prompt, conversation):
     response = model.chat(
@@ -256,7 +264,26 @@ def analyze_conversation(history, new_text, mode="awareness"):
         tone = "neutral"
         intensity = 0.2
     else:
-        tone = model_tone if model_tone in valid_tones else "neutral"
+        supported_tones = {
+            TONE_BY_FINDING_TYPE[finding["type"]]
+            for finding in verified_findings
+        }
+        non_neutral_tones = supported_tones - {"neutral"}
+        if non_neutral_tones:
+            supported_tones = non_neutral_tones
+        fallback_tone = next(
+            (
+                TONE_BY_FINDING_TYPE[finding["type"]]
+                for finding in verified_findings
+                if TONE_BY_FINDING_TYPE[finding["type"]] != "neutral"
+            ),
+            "neutral",
+        )
+        tone = (
+            model_tone
+            if model_tone in supported_tones
+            else fallback_tone
+        )
         intensity = (
             model_intensity
             if isinstance(model_intensity, (int, float))

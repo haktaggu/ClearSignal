@@ -16,12 +16,10 @@ export const LANGUAGES: Record<LangCode, { name: string }> = {
 };
 
 export const TONES: Tone[] = [
-  { id: 'neutral', label: 'Neutral', emoji: '😐', color: '#A1A1AA', meaning: 'Plain, matter-of-fact' },
-  { id: 'joking', label: 'Joking', emoji: '😄', color: '#F472B6', meaning: 'Teasing, lighthearted' },
-  { id: 'sarcasm', label: 'Sarcasm', emoji: '🙄', color: '#2DD4BF', meaning: 'Means the opposite' },
-  { id: 'sly', label: 'Sly', emoji: '😏', color: '#A78BFA', meaning: 'Hinting, knowing more' },
-  { id: 'anger', label: 'Anger', emoji: '😠', color: '#F05252', meaning: 'Frustrated, heated' },
-  { id: 'contradict', label: 'Contradiction', emoji: '❗', color: '#ff0000', meaning: 'Contradicted a point made earlier' },
+  { id: 'neutral', label: 'Neutral', emoji: '😐', color: '#A1A1AA', meaning: 'No specific warning pattern found' },
+  { id: 'sly', label: 'Pressure / secrecy', emoji: '😏', color: '#A78BFA', meaning: 'Explicit pressure, urgency, or secrecy cues' },
+  { id: 'anger', label: 'Threat / coercion', emoji: '⚠️', color: '#F05252', meaning: 'Explicitly threatening or coercive wording' },
+  { id: 'contradict', label: 'Possible conflict', emoji: '❗', color: '#ff0000', meaning: 'Two factual statements may conflict' },
 ];
 
 export const TONE_MAP = Object.fromEntries(TONES.map((t) => [t.id, t])) as Record<ToneId, Tone>;
