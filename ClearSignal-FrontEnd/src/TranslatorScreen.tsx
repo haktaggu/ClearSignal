@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Glass from './Glass';
@@ -19,7 +19,7 @@ export default function TranslatorScreen({ onShowLegend }: { onShowLegend: () =>
   const [selected, setSelected] = useState<Message | null>(null);
   const [langs, setLangs] = useState<{ from: LangCode; to: LangCode }>({ from: 'en', to: 'es' });
 
-  const { messages } = useConversation(listening);
+  const { messages, loading, error, clear } = useConversation(listening);
 
   // Quiet breathing ring around the mic while listening.
   const ring = useRef(new Animated.Value(0)).current;
@@ -43,9 +43,13 @@ export default function TranslatorScreen({ onShowLegend }: { onShowLegend: () =>
 
   const toggleListening = useCallback(() => {
     haptic('light');
-    setListening((on) => !on);
+    setListening((on) => {
+      // Clear conversation history each time a new session starts.
+      if (!on) clear();
+      return !on;
+    });
     setSelected(null);
-  }, []);
+  }, [clear]);
 
   const toggleTones = useCallback(() => {
     haptic('select');
@@ -64,7 +68,13 @@ export default function TranslatorScreen({ onShowLegend }: { onShowLegend: () =>
     : undefined;
 
   const empty = messages.length === 0;
-  const status = listening ? 'Listening' : empty ? 'Tap to translate' : 'Paused';
+  const status = loading
+    ? 'Awaiting input…'
+    : listening
+    ? 'Listening'
+    : empty
+    ? 'Tap to translate'
+    : 'Paused';
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 16 }]}>
@@ -112,7 +122,14 @@ export default function TranslatorScreen({ onShowLegend }: { onShowLegend: () =>
           showsVerticalScrollIndicator={false}
           onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
         >
-          {empty ? (
+          {error ? (
+            <Text style={styles.errorText}>{error}</Text>
+          ) : loading ? (
+            <View style={styles.loadingWrap}>
+              <ActivityIndicator size="small" color={colors.muted} />
+              <Text style={styles.loadingText}>Awaiting input…</Text>
+            </View>
+          ) : empty ? (
             <Text style={styles.emptyText}>
               {listening ? 'Listening…' : 'Speak and see it translated'}
             </Text>
@@ -196,6 +213,9 @@ const styles = StyleSheet.create({
   content: { gap: 14, paddingBottom: 20 },
   contentEmpty: { flexGrow: 1, alignItems: 'center', justifyContent: 'center' },
   emptyText: { color: colors.faint, fontSize: 18, letterSpacing: 0.2 },
+  loadingWrap: { alignItems: 'center', gap: 12 },
+  loadingText: { color: colors.muted, fontSize: 14, letterSpacing: 0.4 },
+  errorText: { color: '#F05252', fontSize: 14, lineHeight: 20, textAlign: 'center', paddingHorizontal: 24 },
   dock: { alignItems: 'center', paddingTop: 6 },
   hint: { color: colors.faint, fontSize: 12, letterSpacing: 0.5, height: 18 },
   micWrap: { width: 80, height: 80, alignItems: 'center', justifyContent: 'center', marginTop: 8 },

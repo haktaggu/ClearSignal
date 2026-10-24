@@ -6,13 +6,12 @@ from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 
 load_dotenv()
 
-def clean_transcript(text: str) -> str:
-    # Remove IBM Speech to Text marker tokens such as
-    # %HESITATION or other %TOKEN markers.
-    text = re.sub(r"\s*%[A-Z0-9_]+\s*", " ", text)
 
-    # Normalize whitespace introduced by removal.
+def clean_transcript(text: str) -> str:
+    # Remove IBM Speech to Text marker tokens such as %HESITATION.
+    text = re.sub(r"\s*%[A-Z0-9_]+\s*", " ", text)
     return " ".join(text.split())
+
 
 def transcribe_audio(audio_file, content_type="audio/wav"):
     authenticator = IAMAuthenticator(os.environ["IBM_STT_APIKEY"])
@@ -23,8 +22,8 @@ def transcribe_audio(audio_file, content_type="audio/wav"):
     result = service.recognize(
         audio=audio_file,
         content_type=content_type,
-        model="en-US",
-        smart_formatting=True
+        model="en-US_BroadbandModel",  # valid IBM STT model name
+        smart_formatting=True,
     ).get_result()
 
     transcript = " ".join(
