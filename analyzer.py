@@ -15,7 +15,7 @@ model = ModelInference(
     model_id=os.environ["WATSONX_MODEL_ID"],
     credentials=credentials,
     project_id=os.environ["WATSONX_PROJECT_ID"],
-    params={"max_tokens": 700}
+    params={"max_tokens": 700, "temperature": 0.1}
 )
 
 SYSTEM_PROMPT = """

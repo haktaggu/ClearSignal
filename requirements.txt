@@ -3,3 +3,5 @@ uvicorn
 pydantic
 python-dotenv
 ibm-watsonx-ai
+ibm-watson
+python-multipart
