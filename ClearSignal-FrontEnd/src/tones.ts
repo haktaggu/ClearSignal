@@ -21,7 +21,7 @@ export const TONES: Tone[] = [
   { id: 'sarcasm', label: 'Sarcasm', emoji: '🙄', color: '#2DD4BF', meaning: 'Means the opposite' },
   { id: 'sly', label: 'Sly', emoji: '😏', color: '#A78BFA', meaning: 'Hinting, knowing more' },
   { id: 'anger', label: 'Anger', emoji: '😠', color: '#F05252', meaning: 'Frustrated, heated' },
-  { id: 'walkback', label: 'Walked back', emoji: '↩️', color: '#F5B461', meaning: 'Reverted an earlier point' },
+  { id: 'contradict', label: 'Walked back', emoji: '❗', color: '#ff0000', meaning: 'Contradicted a point made earlier' },
 ];
 
 export const TONE_MAP = Object.fromEntries(TONES.map((t) => [t.id, t])) as Record<ToneId, Tone>;

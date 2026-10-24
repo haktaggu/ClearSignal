@@ -54,3 +54,14 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+Requirements: Node.js and npm.
+
+From ClearSignal-FrontEnd, install the exact dependencies with:
+npm ci
+
+When adding an Expo package, use:
+npx expo install <package-name>
+
+Start the web app with:
+npm run web

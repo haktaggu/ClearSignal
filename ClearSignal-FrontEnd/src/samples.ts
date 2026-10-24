@@ -62,7 +62,7 @@ export const SAMPLES: Utterance[] = [
       en: "Okay, maybe I overreacted. Friday isn't set in stone.",
       es: 'Vale, quizá exageré. El viernes no es definitivo.',
     },
-    tone: 'walkback',
+    tone: 'contradict',
     intensity: 0.7,
     why: 'Pitch softened and the pace slowed while revisiting the deadline from earlier, withdrawing the firm stance.',
     signals: ['Softer pitch', 'Slower pace', 'Hedging with "maybe"'],

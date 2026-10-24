@@ -1,6 +1,6 @@
 export type LangCode = 'en' | 'es';
 
-export type ToneId = 'neutral' | 'joking' | 'sarcasm' | 'sly' | 'anger' | 'walkback';
+export type ToneId = 'neutral' | 'joking' | 'sarcasm' | 'sly' | 'anger' | 'contradict';
 
 export interface Tone {
   id: ToneId;
