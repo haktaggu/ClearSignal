@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   signalText: { color: colors.text, fontSize: 13, opacity: 0.9 },
   quote: {
     borderLeftWidth: 2,
-    borderLeftColor: TONE_MAP.walkback.color,
+    borderLeftColor: TONE_MAP.contradict.color,
     paddingLeft: 12,
   },
   quoteText: { color: colors.text, fontSize: 15, lineHeight: 22, opacity: 0.85 },
