@@ -1,9 +1,11 @@
 
+import json
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from analyzer import analyze_conversation
-from fastapi import File, UploadFile
+from analyzer import analyze_conversation, translate_to_spanish
+from fastapi import File, Form, UploadFile
 from speech_to_text import transcribe_audio
 
 app = FastAPI(title="ClearSignal AI")
@@ -35,15 +37,32 @@ def analyze(request: ConversationRequest):
     )
 
 @app.post("/analyze-audio")
-async def analyze_audio(file: UploadFile = File(...)):
+async def analyze_audio(
+    file: UploadFile = File(...),
+    history: str = Form("[]"),
+):
     audio = await file.read()
+
+    try:
+        submitted_history = json.loads(history)
+    except json.JSONDecodeError:
+        submitted_history = []
+
+    conversation_history = (
+        [item for item in submitted_history if isinstance(item, str)][-40:]
+        if isinstance(submitted_history, list)
+        else []
+    )
 
     transcript = transcribe_audio(
         audio,
         file.content_type or "audio/wav"
     )
 
+    translation = translate_to_spanish(transcript)
+
     return {
         "transcript": transcript,
-        "analysis": analyze_conversation([], transcript)
+        "translation": translation,
+        "analysis": analyze_conversation(conversation_history, transcript)
     }

@@ -9,7 +9,7 @@ import {
 import type { Message, Utterance } from './types';
 
 const MAX_MESSAGES = 40;
-const API_URL = 'http://127.0.0.1:8000/analyze-audio';
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export function useConversation(active: boolean) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -59,6 +59,10 @@ export function useConversation(active: boolean) {
     if (!uri) return;
 
     const formData = new FormData();
+    formData.append(
+      'history',
+      JSON.stringify(history.current.map((message) => message.text.en))
+    );
 
     if (Platform.OS === 'web') {
       const audioBlob = await fetch(uri).then((response) => response.blob());
@@ -71,10 +75,18 @@ export function useConversation(active: boolean) {
       } as any);
     }
 
+    if (!API_URL) {
+      throw new Error('EXPO_PUBLIC_API_URL is not configured.');
+    }
+
     const response = await fetch(API_URL, {
       method: 'POST',
       body: formData,
     });
+
+    if (!response.ok) {
+      throw new Error(`Audio analysis failed: ${response.status}`);
+    }
 
     const data = await response.json();
     const findings = data.analysis?.findings ?? [];
@@ -82,10 +94,10 @@ export function useConversation(active: boolean) {
     push({
       text: {
         en: data.transcript,
-        es: data.transcript,
+        es: data.translation ?? data.transcript,
       },
-      tone: findings.length > 0 ? 'sly' : 'neutral',
-      intensity: findings.length > 0 ? 0.85 : 0.2,
+      tone: data.analysis?.tone ?? 'neutral',
+      intensity: data.analysis?.intensity ?? 0.2,
       why: findings
         .map((finding: any) => finding.explanation)
         .join(' '),
@@ -102,14 +114,7 @@ export function useConversation(active: boolean) {
     }
   }, [active, startRecording, stopRecording]);
 
-  const clear = useCallback(() => {
-    history.current = [];
-    counter.current = 0;
-    setMessages([]);
-  }, []);
-
   return {
     messages,
-    clear,
   };
 }

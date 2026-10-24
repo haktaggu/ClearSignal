@@ -36,6 +36,8 @@ Return ONLY valid JSON with this structure:
 
 {
   "status": "review_suggested",
+  "tone": "contradict",
+  "intensity": 0.85,
   "findings": [
     {
       "type": "possible_contradiction",
@@ -50,6 +52,17 @@ Return ONLY valid JSON with this structure:
 
 Use status "no_pattern_detected" if no
 specific warning sign is found.
+
+Choose tone from only these values:
+- "contradict" for a supported factual contradiction.
+- "sly" for supported pressure, secrecy, or manipulative language.
+- "anger" for supported threatening, coercive, or clearly angry language.
+- "neutral" when no specific warning sign is found.
+
+Use an intensity from 0.0 to 1.0. Use a low intensity for
+neutral and a higher intensity only when the evidence supports it.
+Do not use "joking" or "sarcasm" because text alone cannot
+reliably determine vocal delivery.
 
 Never invent quotes or missing facts.
 """
@@ -104,14 +117,52 @@ def analyze_conversation(history, new_text):
         ):
             verified_findings.append(finding)
 
+    valid_tones = {"neutral", "sly", "contradict", "anger"}
+    model_tone = result.get("tone")
+    model_intensity = result.get("intensity")
+
+    if not verified_findings:
+        tone = "neutral"
+        intensity = 0.2
+    else:
+        tone = model_tone if model_tone in valid_tones else "neutral"
+        intensity = (
+            model_intensity
+            if isinstance(model_intensity, (int, float))
+            and 0.0 <= model_intensity <= 1.0
+            else 0.7
+        )
+
     return {
         "status": (
             "review_suggested"
             if verified_findings
             else "no_pattern_detected"
         ),
+        "tone": tone,
+        "intensity": intensity,
         "findings": verified_findings,
         "suggested_question": result.get(
             "suggested_question"
         )
     }
+
+def translate_to_spanish(text: str) -> str:
+    response = model.chat(
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Translate the user's text into natural Spanish. "
+                    "Return only the translation. "
+                    "Do not add explanations or quotation marks."
+                ),
+            },
+            {
+                "role": "user",
+                "content": text,
+            },
+        ]
+    )
+
+    return response["choices"][0]["message"]["content"].strip()
